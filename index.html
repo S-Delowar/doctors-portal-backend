@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>My Node And Mongo DB site</h1>
+    <p class="container text-danger" id="patient-name"></p>
+
+    <div class="container">
+        <div class="row mb-2">
+            <input type="text" class="form-control" id="name" placeholder="Patient name">
+            <input type="text" class="form-control" id="age" placeholder="Age">
+            <input type="text" class="form-control" id="phone" placeholder="phone">
+            <button class="btn btn-primary" id="addPatient">Add User</button>
+            <p style="display: none; color:green" id="success-message">
+                <small> Patient Added Successfully</small>
+            </p>
+        </div>
+        <div>
+            <ul id="patient-list"></ul>
+        </div>
+    </div>
+
+
+    <script>
+        fetch('http://localhost:3000/appointments')
+            .then(res => res.json())
+            .then(patient => {
+                console.log(patient);
+                displayPatients(patient)
+            })
+
+        function displayPatients(data) {
+            const patientContainer = document.getElementById('patient-list');
+            for (let i = 0; i < data.length; i++) {
+                const patient = data[i];
+                appendPatient(patient, patientContainer);
+            }
+        }
+
+        function appendPatient(patient, patientContainer) {
+            const item = document.createElement('li');
+            item.innerText = `Patient name: ${patient.name};  age: ${patient.age};  phone: ${patient.phone}`;
+            patientContainer.appendChild(item);
+        }
+        //post data to the server:
+        const btnAddPatient = document.getElementById('addPatient');
+        btnAddPatient.addEventListener('click', () => {
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const phone = document.getElementById('phone').value;
+            const patient = { name, age, phone };
+            console.log(patient);
+
+
+            //post
+            fetch('http://localhost:3000/addAppointment', {
+                method: 'POST',
+                body: JSON.stringify(patient),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Post Done', data)
+                    updatePatient(data);
+                    //clean
+                    document.getElementById('name').value = "";
+                    document.getElementById('age').value = "";
+                    document.getElementById('phone').value = "";
+                    //show success msg
+                    const successMessage = document.getElementById("success-message");
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        successMessage.style.display = "none";
+                    }, 5000);
+                })
+
+        })
+
+        const updatePatient = patient => {
+            const patientContainer = document.getElementById('patient-list');
+            appendPatient(patient, patientContainer)
+            document.getElementById('patient-name').innerText = patient.name;
+        }
+    </script>
+</body>
+
+</html>
